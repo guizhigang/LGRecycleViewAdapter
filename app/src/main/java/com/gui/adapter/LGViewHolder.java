@@ -27,12 +27,6 @@ public class LGViewHolder extends RecyclerView.ViewHolder {
         return new LGViewHolder(parent.getContext(), itemView, parent);
     }
 
-    public void setOnItemClickListener(final int viewId,View.OnClickListener listener){
-        View view = getView(viewId);
-        if(view != null)
-            view.setOnClickListener(listener);
-    }
-
     public View getView(int viewId) {
         View view = mViews.get(viewId);
         if (view == null) {

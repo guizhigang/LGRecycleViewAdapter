@@ -2,8 +2,11 @@ package com.gui.adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.gui.recycleviewtest.R;
 
 import java.util.List;
 
@@ -13,27 +16,30 @@ import java.util.List;
 public abstract class LGRecycleViewAdapter<T> extends RecyclerView.Adapter<LGViewHolder> {
     private final String TAG = "LGRecycleViewAdapter";
 
-    public interface OnItemClickListener{
-        void onClick(View view,int position);
-    }
+    private SparseArray<ItemClickListener> onClickListeners;
 
     private List<T> dataList;
-    private OnItemClickListener onItemClickListener;
+
+    public interface ItemClickListener {
+        void onItemClicked(View view,int position);
+    }
 
     public LGRecycleViewAdapter(List<T> dataList) {
         this.dataList = dataList;
+        onClickListeners = new SparseArray<>();
     }
 
-    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
-        this.onItemClickListener = onItemClickListener;
+    public void setOnItemClickListener(int viewId,ItemClickListener listener) {
+        ItemClickListener listener_ = onClickListeners.get(viewId);
+        if(listener_ == null){
+            onClickListeners.put(viewId,listener);
+        }
     }
 
     public abstract int getLayoutId(int viewType);
 
-    public abstract int getClickViewId(int viewType);
-
-    //更新itemView视图,绑定事件等操作
-    public abstract void convert(LGViewHolder holder, T t);
+    //更新itemView视图
+    public abstract void convert(LGViewHolder holder, T t, int position);
 
     public T getItem(final int position){
         if(dataList == null)
@@ -51,16 +57,19 @@ public abstract class LGRecycleViewAdapter<T> extends RecyclerView.Adapter<LGVie
     @Override
     public void onBindViewHolder(LGViewHolder holder, final int position) {
         T itemModel = dataList.get(position);
-        convert(holder, itemModel);
-        int viewType = getItemViewType(position);
-        int clickViewId = getClickViewId(viewType);
-        final View clickView = holder.getView(clickViewId);
-        if(clickView != null){
-            clickView.setOnClickListener(new View.OnClickListener() {
+        convert(holder, itemModel, position);
+
+        for (int i = 0; i < onClickListeners.size(); ++i){
+            int id = onClickListeners.keyAt(i);
+            View view = holder.getView(id);
+            if(view == null)
+                continue;
+            final ItemClickListener listener = onClickListeners.get(id);
+            view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(onItemClickListener != null){
-                        onItemClickListener.onClick(clickView,position);
+                    if(listener != null){
+                        listener.onItemClicked(v,position);
                     }
                 }
             });
@@ -77,6 +86,15 @@ public abstract class LGRecycleViewAdapter<T> extends RecyclerView.Adapter<LGVie
     @Override
     public void onViewRecycled(LGViewHolder holder) {
         super.onViewRecycled(holder);
-        Log.d(TAG,"onViewRecycled");
+    }
+
+    public void destroyAdapter(){
+        if(onClickListeners != null)
+            onClickListeners.clear();
+        onClickListeners = null;
+
+        if(dataList != null)
+            dataList.clear();
+        dataList = null;
     }
 }

@@ -18,12 +18,13 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
-    private final String TAG = "MainActivity";
+    private static final String TAG = "MainActivity";
 
     @BindView(R.id.id_recycle_view)
     RecyclerView recyclerView;
 
     private RecyclerView.LayoutManager layoutManager;
+    private MainAdapter mainAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,15 +38,28 @@ public class MainActivity extends AppCompatActivity {
         }
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this);
-        MainAdapter mainAdapter = new MainAdapter(datas);
-        mainAdapter.setOnItemClickListener(new LGRecycleViewAdapter.OnItemClickListener() {
+        mainAdapter = new MainAdapter(datas);
+        mainAdapter.setOnItemClickListener(R.id.root, new LGRecycleViewAdapter.ItemClickListener() {
             @Override
-            public void onClick(View view, int position) {
-                Log.d(TAG,"click view..." + position);
+            public void onItemClicked(View view, int position) {
+                Log.d(TAG,"root clicked..." + position);
             }
         });
+        mainAdapter.setOnItemClickListener(R.id.icon, new LGRecycleViewAdapter.ItemClickListener() {
+            @Override
+            public void onItemClicked(View view, int position) {
+                Log.d(TAG,"icon clicked..." + position);
+            }
+        });
+
         recyclerView.setAdapter(mainAdapter);
         recyclerView.setLayoutManager(layoutManager);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mainAdapter.destroyAdapter();
     }
 
     private static class MainAdapter extends LGRecycleViewAdapter<String> {
@@ -55,22 +69,24 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public int getClickViewId(int viewType) {
-            return R.id.icon;
-        }
-
-        @Override
         public int getLayoutId(int viewType) {
-            return R.layout.item_view_main;
+            if(viewType == 1)
+                return R.layout.item_view_main1;
+            return R.layout.item_view_main2;
         }
 
+        //支持不同viewType视图
         @Override
         public int getItemViewType(int position) {
-            return super.getItemViewType(position);
+            String model = getItem(position);
+            if(position % 2 == 0)
+                return  1;
+            return  2;
+//            return super.getItemViewType(position);
         }
 
         @Override
-        public void convert(LGViewHolder holder, String s) {
+        public void convert(LGViewHolder holder, String s, final int position) {
             TextView textView = (TextView) holder.getView(R.id.id_text);
             textView.setText(s);
         }
