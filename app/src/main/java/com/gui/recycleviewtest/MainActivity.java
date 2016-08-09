@@ -5,7 +5,10 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.gui.adapter.LGRecycleViewAdapter;
@@ -13,6 +16,7 @@ import com.gui.adapter.LGViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.Inflater;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -89,6 +93,75 @@ public class MainActivity extends AppCompatActivity {
         public void convert(LGViewHolder holder, String s, final int position) {
             TextView textView = (TextView) holder.getView(R.id.id_text);
             textView.setText(s);
+        }
+    }
+
+    private static class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder>{
+
+        private List<String> dataList;
+
+        private ItemClickListener itemClickListener;
+
+        public MyAdapter(List<String> dataList){
+            this.dataList = dataList;
+        }
+
+        public interface ItemClickListener {
+            void onItemClicked(View view,int position);
+        }
+
+        //设置点击回调接口
+        public void setItemClickListener(ItemClickListener itemClickListener) {
+            this.itemClickListener = itemClickListener;
+        }
+
+        //生成ViewHolder
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            int itemViewId = -1;
+            if(viewType == 1){
+                itemViewId = R.layout.item_view_main1;
+            }else if(viewType == 2){
+                itemViewId = R.layout.item_view_main2;
+            }
+            View itemView = LayoutInflater.from(parent.getContext()).inflate(itemViewId, parent, false);
+            return new ViewHolder(itemView);
+        }
+
+        private String getItem(int position){
+            return dataList.get(position);
+        }
+
+        //更新列表Item视图(根据需要绑定click事件)
+        @Override
+        public void onBindViewHolder(ViewHolder holder, final int position) {
+            String str = getItem(position);
+//            holder.icon.setImageDrawable(xxx);
+            holder.name.setText(str);
+            holder.root.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(itemClickListener != null)
+                        itemClickListener.onItemClicked(v,position);
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return dataList.size();
+        }
+        //ViewHolder保存每个item视图
+        public class ViewHolder extends RecyclerView.ViewHolder{
+            private ImageView icon;
+            private TextView name;
+            private View root;
+            public ViewHolder(View itemView) {
+                super(itemView);
+                icon = (ImageView)itemView.findViewById(R.id.icon);
+                name = (TextView)itemView.findViewById(R.id.id_text);
+                root = itemView.findViewById(R.id.root);
+            }
         }
     }
 }

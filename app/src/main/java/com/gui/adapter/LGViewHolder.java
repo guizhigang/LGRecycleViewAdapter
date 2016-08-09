@@ -13,20 +13,29 @@ import android.view.ViewGroup;
 public class LGViewHolder extends RecyclerView.ViewHolder {
     private SparseArray<View> mViews;
     private View mConvertView;//缓存itemView内部的子View
-    private Context context;
 
-    public LGViewHolder(Context context, View itemView, ViewGroup parent) {
+    public LGViewHolder(View itemView) {
         super(itemView);
-        this.context = context;
         mConvertView = itemView;
         mViews = new SparseArray<>();
     }
 
-    public static LGViewHolder getViewHolder(ViewGroup parent, int layoutId) {
+    /**
+     * 加载layoutId视图并用LGViewHolder保存
+     * @param parent
+     * @param layoutId
+     * @return
+     */
+    protected static LGViewHolder getViewHolder(ViewGroup parent, int layoutId) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
-        return new LGViewHolder(parent.getContext(), itemView, parent);
+        return new LGViewHolder(itemView);
     }
 
+    /**
+     * 根据ItemView的id获取子视图View
+     * @param viewId
+     * @return
+     */
     public View getView(int viewId) {
         View view = mViews.get(viewId);
         if (view == null) {
